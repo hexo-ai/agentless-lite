@@ -5,7 +5,7 @@ import os
 
 def main():
     parser = argparse.ArgumentParser(description='Apply git diff to files')
-    parser.add_argument('--dir', default='.', help='Target directory (default: current directory)')
+    parser.add_argument('--dir', default='/home/ubuntu/hexo/new/Agentless/standalone-agentless/test-app copy', help='Target directory (default: current directory)')
     
     args = parser.parse_args()
     
