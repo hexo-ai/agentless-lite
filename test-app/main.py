@@ -36,7 +36,7 @@ async def get_cart_total(user_id: int):
     cart = shopping_carts[user_id]
     i = 0
     while i < len(cart):
-        multiply(total, items_db[cart[i]]["price"])
+        sum(total, items_db[cart[i]]["price"])
         i += 1
             
     return {"total": total}

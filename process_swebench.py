@@ -276,36 +276,61 @@ async def main():
     dataset = load_dataset('princeton-nlp/SWE-bench_Lite', split='test')
     # Define target instances and their iterations
     target_instances = {
-        'django__django-11179': 16,
-        'django__django-11039': 34,
-        'django__django-14672': 26,
-        'django__django-10914': 27,
-        'django__django-13401': 26,
-        'django__django-12497': 23,
-        'django__django-11815': 32,
-        'django__django-13230': 30,
-        'django__django-11583': 33,
-        'django__django-13964': 36,
-        'django__django-14017': 33,
-        'django__django-12700': 24,
-        'django__django-14382': 15,
-        'django__django-11620': 28,
-        'astropy__astropy-12907': 50,
-        'django__django-13757': 25,
-        'django__django-13028': 36,
-        'django__django-11133': 22,
-        'django__django-14411': 24,
-        'django__django-13658': 18,
-        'django__django-13925': 24,
-        'django__django-11001': 56,
-        'django__django-12453': 19,
-        'django__django-12983': 14,
-        'django__django-11099': 17,
-        'django__django-14608': 32,
+        # 'django__django-11179': 16,
+        # 'django__django-11039': 34,
+        # 'django__django-14672': 26,
+        # 'django__django-10914': 27,
+        # 'django__django-13401': 26,
+        # 'django__django-12497': 23,
+        # 'django__django-11815': 32,
+        # 'django__django-13230': 30,
+        # 'django__django-11583': 33,
+        # 'django__django-13964': 36,
+        # 'django__django-14017': 33,
+        # 'django__django-12700': 24,
+        # 'django__django-14382': 15,
+        # 'django__django-11620': 28,
+        # 'astropy__astropy-12907': 50,
+        # 'django__django-13757': 25,
+        # 'django__django-13028': 36,
+        # 'django__django-11133': 22,
+        # 'django__django-14411': 24,
+        # 'django__django-13658': 18,
+        # 'django__django-13925': 24,
+        # 'django__django-11001': 56,
+        # 'django__django-12453': 19,
+        # 'django__django-12983': 14,
+        # 'django__django-11099': 17,
+        # 'django__django-14608': 32,
         
-        'astropy__astropy-14995' : 10,
-        'django__django-11630': 20,
-        'django__django-13660': 90,
+        'django__django-11630': 18,
+        'django__django-13768': 23,
+        'django__django-12113': 33,
+        'django__django-13660': 16,
+        'django__django-13448': 21,
+        'django__django-14667': 40,
+        'astropy__astropy-7746': 32,
+        'django__django-10924': 40,
+        'django__django-12747': 28,
+        'astropy__astropy-6938': 40,
+        'django__django-11422': 24,
+        'astropy__astropy-14365': 32,
+        'django__django-11019': 18,
+        'astropy__astropy-14182': 44,
+        'django__django-12708': 24,
+        'django__django-11564': 34,
+        'django__django-13321': 26,
+        'django__django-11905': 32,
+        'django__django-13447': 40,
+        'django__django-13265': 23,
+        'astropy__astropy-14995': 10,
+        'django__django-11848': 23,
+        'django__django-13220': 24,
+        'django__django-12308': 34,
+        'django__django-14155': 28,
+        'django__django-13551': 38,
+        'django__django-11742': 30,
+        'django__django-14534': 24,
     }
     
     # Optional target instance ID
@@ -396,6 +421,13 @@ async def main():
             logger.error(f'Error processing {instance_id}: {str(e)}', exc_info=True)
             if target_instance_id:  # If processing single instance, stop on error
                 raise
+            # Save empty files in case of error
+            with open(instance_output / 'result.json', 'w') as f:
+                json.dump({}, f, indent=2)
+            with open(instance_output / 'raw_patch.diff', 'w') as f:
+                f.write("")
+            with open(instance_output / 'patch.diff', 'w') as f:
+                f.write("")
             continue
 
         if target_instance_id:  # If processing single instance, stop after completion
@@ -413,6 +445,9 @@ def clean_patch(patch_text):
     # Split the patch into individual file diffs
     file_diffs = []
     current_diff = []
+    
+    if not patch_text:
+        return ""
     
     for line in patch_text.splitlines():
         if line.startswith('diff --git '):
@@ -455,4 +490,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     asyncio.run(main())
-
