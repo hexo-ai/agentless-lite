@@ -40,7 +40,7 @@ def save_results(results: Dict, output_file: str) -> None:
 
 
 
-def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Optional[str]:
+def find_patch(bug_description: str, project_dir: str, instance_id: str = None) -> Optional[str]:
     """
     Find a patch for the given bug description in the project directory.
     
@@ -52,6 +52,10 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
     Returns:
         Optional[str]: The best fix if found, None otherwise
     """
+    
+    if not instance_id:
+        instance_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
     # Fixed parameters
     output_dir = os.path.join("results", instance_id)
     top_n = 3
@@ -156,8 +160,7 @@ if __name__ == "__main__":
     instance_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     patch = find_patch(
         'There is a bug in the get_cart_total endpoint where it randomly skips items during total calculation.',
-        'test-app',
-        'test-app-1'
+        'test-app'
     )
 
     # Print the results
