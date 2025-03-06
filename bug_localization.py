@@ -177,7 +177,7 @@ def locate_specific_lines(llm: LLMInterface, problem_statement: str, repo_path: 
     
     combined_content = "\n\n".join(all_file_contents)
     
-    prompt = llm.LINE_LEVEL_PROMPT.format(
+    prompt = llm.CODE_ELEMENTS_PROMPT.format(
         problem_statement=problem_statement,
         file_contents=combined_content
     )
@@ -206,15 +206,15 @@ def locate_specific_lines(llm: LLMInterface, problem_statement: str, repo_path: 
                         edit_locations[current_file] = []
                 else:
                     element_type, name = line.split(': ', 1)
-                    if element_type == 'function':
-                        # Find the function in code_elements
+                    if element_type in ['class', 'function', 'variable']:
+                        # Find the element in code_elements
                         if current_file in code_elements:
                             matching_elements = [
                                 elem for elem in code_elements[current_file] 
-                                if elem['type'] == 'function' and elem['name'] == name.strip()
+                                if elem['type'] == element_type and elem['name'] == name.strip()
                             ]
                             if matching_elements:
-                                # Get the function content using extract_relevant_sections
+                                # Get the element content using extract_relevant_sections
                                 sections = extract_relevant_sections(
                                     current_file, 
                                     repo_path, 
@@ -223,27 +223,11 @@ def locate_specific_lines(llm: LLMInterface, problem_statement: str, repo_path: 
                                 )
                                 if sections:
                                     edit_locations[current_file].append({
-                                        "type": "function",
+                                        "type": element_type,
                                         "name": name.strip(),
                                         "content": sections[0]
                                     })
                     
-                    elif line.startswith('line: '):
-                        try:
-                            line_num = int(line.split('line: ')[1])
-                            content = read_file_content(os.path.join(repo_path, current_file))
-                            if content:
-                                start_line = max(1, line_num - context_window)
-                                end_line = min(len(content.split('\n')), line_num + context_window)
-                                edit_locations[current_file].append({
-                                    "type": "line",
-                                    "start": start_line,
-                                    "end": end_line,
-                                    "content": '\n'.join(content.split('\n')[start_line-1:end_line])
-                                })
-                        except ValueError:
-                            continue
-                            
     except Exception as e:
         logger.error(f"Error parsing line-level response: {str(e)}")
     

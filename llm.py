@@ -92,7 +92,7 @@ Return just the locations wrapped with ```.
 
     LINE_LEVEL_PROMPT = """
 Please review the following GitHub problem description and relevant files, and provide a set of locations that need to be edited to fix the issue.
-The locations can be specified as class names, function or method names, or exact line numbers that require modification.
+The locations can be specified as class names, function or method names, that require modification.
 
 ### GitHub Problem Description ###
 {problem_statement}
@@ -102,20 +102,25 @@ The locations can be specified as class names, function or method names, or exac
 
 ###
 
-Please provide the class name, function or method name, or the exact line numbers that need to be edited.
-The possible location outputs should be either "class", "function" or "line".
+Please provide the class name, function or method name, that need to be edited.
+The possible location outputs should be either "class", "function"
 
 ### Examples:
 ```
 full_path1/file1.py
+function: my_function_1
 class: MyClass1
-
-full_path2/file2.py
 function: MyClass2.my_method
 
+full_path2/file2.py
+variable: my_var
+function: MyClass3.my_method
+
 full_path3/file3.py
-line: 24
-line: 156
+function: my_function_2
+function: my_function_3
+function: MyClass4.my_method_1
+class: MyClass5
 ```
 
 Return just the location(s) wrapped with ```.
@@ -139,8 +144,8 @@ We are currently solving the following issue within our repository. Here is the 
 Please first localize the bug based on the issue statement, and then generate *SEARCH/REPLACE* edits to fix the issue.
 
 Every *SEARCH/REPLACE* edit must use this format:
-1. The file path
-2. The start of search block: <<<<<<< SEARCH
+1. The file path with line numbers
+2. The start of search block: <<<<<<< SEARCH (line X-Y)
 3. A contiguous chunk of lines to search for in the existing source code
 4. The dividing line: =======
 5. The lines to replace into the source code
@@ -150,7 +155,7 @@ Here is an example:
 
 ```python
 ### mathweb/flask/app.py
-<<<<<<< SEARCH
+<<<<<<< SEARCH (line X-Y)
 from flask import Flask
 =======
 import math

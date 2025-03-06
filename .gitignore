@@ -1,3 +1,8 @@
 results/*
 *__pycache__/*
 temp/*
+swebench_outputs
+test-app
+test-app copy
+SWE-bench
+projects

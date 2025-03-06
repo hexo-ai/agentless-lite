@@ -3,9 +3,7 @@ from typing import Dict, Optional
 import json
 import os
 from datetime import datetime
-import tempfile
-import shutil
-import subprocess
+
 
 from bug_localization import locate_buggy_files, identify_irrelevant_folders, locate_code_elements, locate_specific_lines
 from bug_repair import generate_fixes
@@ -77,6 +75,7 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
     )
     save_results(buggy_files, os.path.join(dirs["file_level"], "buggy_files.json"))
     
+    
     # irrelevant_folders = identify_irrelevant_folders(
     #     llm=llm,
     #     problem_statement=bug_description,
@@ -84,6 +83,7 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
     #     output_dir=output_dir
     # )
     # save_results(irrelevant_folders, os.path.join(dirs["irrelevant_folders"], "irrelevant_folders.json"))
+    
     
     # Stage 2: Deep Bug Analysis
     logger.info("Stage 2: Deep Bug Analysis")
@@ -125,7 +125,6 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
         repo_path=project_dir,
         edit_locations=edit_locations,
         context_window=context_window,
-        max_samples=max_samples,
         output_dir=output_dir
     )
     save_results(fixes, os.path.join(dirs["repairs"], "fixes.json"))
@@ -141,7 +140,7 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
     )
     save_results(tests, os.path.join(dirs["tests"], "tests.json"))
     
-    validation_results = validate_fixes(
+    validation_results, consolidated_diff = validate_fixes(
         repo_path=project_dir,
         fixes=fixes,
         tests=tests,
@@ -150,22 +149,8 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str) -> Opti
     )
     save_results(validation_results, os.path.join(dirs["validation"], "validation_results.json"))
     
-    # Find the best fix with diff
-    best_fix = None
-    best_score = -1
-    
-    for fix in validation_results:
-        if fix['score'] > best_score and 'diff' in fix:
-            best_score = fix['score']
-            best_fix = fix
-    
-    if best_fix:
-        logger.info(f"Best fix found with score {best_score}")
-        save_results(best_fix, os.path.join(output_dir, "best_fix.json"))
-        return best_fix['diff']
-    
-    logger.warning("No valid fixes found")
-    return None
+    return consolidated_diff
+
 
 if __name__ == "__main__":
     instance_id = datetime.now().strftime("%Y%m%d_%H%M%S")

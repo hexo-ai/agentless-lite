@@ -126,7 +126,7 @@ def extract_context(content: str, location: Dict, context_window: int) -> str:
         logger.error(f"Invalid location format: {location}")
         return content
 
-def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dict], context_window: int) -> List[str]:
+def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dict], context_window: int, line_no: bool = True) -> List[str]:
     """Extract relevant code sections using AST parsing."""
     full_path = os.path.join(repo_path, file_path)
     if not os.path.exists(full_path):
@@ -165,7 +165,14 @@ def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dic
                     # Add header and content
                     section_content.append(f"=== Function: {element['name']} ===")
                     section_content.append("-" * 40)
-                    section_content.extend(lines[start:end])
+                    if line_no:
+                        max_line_num = len(lines)
+                        padding = len(str(max_line_num))
+                        for i in range(start, end):
+                            line_num = str(i + 1).rjust(padding)
+                            section_content.append(f"{line_num}|{lines[i]}")
+                    else:
+                        section_content.extend(lines[start:end])
                     section_content.append("-" * 40)
                     
                     section = '\n'.join(section_content)
@@ -188,7 +195,14 @@ def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dic
                     # Add header and content
                     section_content.append(f"=== Class: {element['name']} ===")
                     section_content.append("-" * 40)
-                    section_content.extend(lines[start:end])
+                    if line_no:
+                        max_line_num = len(lines)
+                        padding = len(str(max_line_num))
+                        for i in range(start, end):
+                            line_num = str(i + 1).rjust(padding)
+                            section_content.append(f"{line_num}|{lines[i]}")
+                    else:
+                        section_content.extend(lines[start:end])
                     section_content.append("-" * 40)
                     
                     section = '\n'.join(section_content)
@@ -213,7 +227,14 @@ def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dic
                             # Add header and content
                             section_content.append(f"=== Variable: {element['name']} ===")
                             section_content.append("-" * 40)
-                            section_content.extend(lines[start:end])
+                            if line_no:
+                                max_line_num = len(lines)
+                                padding = len(str(max_line_num))
+                                for i in range(start, end):
+                                    line_num = str(i + 1).rjust(padding)
+                                    section_content.append(f"{line_num}|{lines[i]}")
+                            else:
+                                section_content.extend(lines[start:end])
                             section_content.append("-" * 40)
                             
                             section = '\n'.join(section_content)
@@ -234,7 +255,14 @@ def extract_relevant_sections(file_path: str, repo_path: str, elements: List[Dic
                         # Add header and content
                         section_content.append(f"=== Variable: {element['name']} ===")
                         section_content.append("-" * 40)
-                        section_content.extend(lines[start:end])
+                        if line_no:
+                            max_line_num = len(lines)
+                            padding = len(str(max_line_num))
+                            for i in range(start, end):
+                                line_num = str(i + 1).rjust(padding)
+                                section_content.append(f"{line_num}|{lines[i]}")
+                        else:
+                            section_content.extend(lines[start:end])
                         section_content.append("-" * 40)
                         
                         section = '\n'.join(section_content)
