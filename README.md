@@ -79,3 +79,5 @@ if __name__ == "__main__":
      - `project_dir`: Path to the project directory containing the code
 
 ### Architecture
+
+![Screenshot from 2025-03-05 17-58-59](https://github.com/user-attachments/assets/ae8d6f54-e190-4d65-869c-7a2497f15b84)
