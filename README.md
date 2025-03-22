@@ -78,6 +78,48 @@ Example service account key structure:
 }
 ```
 
+## LLM Provider Configurations
+
+The system supports multiple LLM providers through the `LLMInterface` class. Below are configuration examples for each supported provider:
+
+### Google Vertex AI (Currently Active)
+
+```python
+llm = LLMInterface(
+    model_name="vertex_ai/claude-3-7-sonnet@20250219",
+    temperature=0.1,
+    max_tokens=4096,
+    security_key_path="security-key.json",
+    vertex_location="us-east5"
+)
+```
+
+### AWS Bedrock
+
+```python
+llm = LLMInterface(
+    model_name="bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
+    temperature=0.1,
+    max_tokens=4096,
+    aws_region="us-west-2"
+)
+```
+
+### Azure OpenAI
+
+```python
+llm = LLMInterface(
+    model_name=f"azure/{os.getenv('AZURE_DEPLOYMENT_NAME')}",
+    temperature=0.1,
+    max_tokens=4096,
+    api_base=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION")
+)
+```
+
+To switch between providers, uncomment the desired configuration in the `find_patch` function in `run.py` and comment out the others.
+
 ## Basic Usage
 
 The basic usage pattern is demonstrated:
@@ -111,7 +153,7 @@ if __name__ == "__main__":
 
 ### Key Components
 
-1. **find_patch Function in the main.py**
+1. **find_patch Function in the run.py**
    - Main entry point for bug fixing
    - Parameters:
      - `bug_description`: String describing the bug
