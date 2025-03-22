@@ -127,3 +127,5 @@ To run SWE-bench or SWE-gym, use the `process-swegym.py` script. This script tak
 The dataset to be used (SWE-bench or SWE-gym) can be set on line 245 of `process-swegym.py`. It is currently set to SWE-gym.
 
 ### Architecture
+
+![Screenshot from 2025-03-05 17-58-59](https://github.com/user-attachments/assets/ae8d6f54-e190-4d65-869c-7a2497f15b84)
