@@ -1,5 +1,7 @@
 from typing import Optional, Dict, Any
 from litellm import completion
+import json
+import os
 
 from logger import logger
 
@@ -179,11 +181,65 @@ Wrap the *SEARCH/REPLACE* edit in blocks ```python...```.
 ```
 """
 
-    def __init__(self):
-        self.model_name = "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
-        self.aws_region = "us-west-2"
-        self.default_temperature = 0.1
-        self.max_tokens = 4096
+    def __init__(self, 
+                model_name: str = "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0", 
+                temperature: float = 0.1,
+                max_tokens: int = 4096,
+                **kwargs):
+        """
+        Initialize the LLMInterface with configurable model settings.
+        
+        Args:
+            model_name: The model identifier (bedrock/*, vertex_ai/*, or azure/*)
+            temperature: The sampling temperature for the model
+            max_tokens: Maximum number of tokens to generate
+            **kwargs: Additional configuration options based on model provider
+        """
+        # Base configuration
+        self.model_name = model_name
+        self.default_temperature = temperature
+        self.max_tokens = max_tokens
+        
+        # Provider-specific configurations
+        if model_name.startswith("bedrock/"):
+            self.aws_region = kwargs.get("aws_region", "us-west-2")
+        elif model_name.startswith("vertex_ai/"):
+            security_key_path = kwargs.get("security_key_path")
+            if security_key_path:
+                self.configure_vertex(security_key_path, kwargs.get("vertex_location", "us-east5"))
+            else:
+                self.vertex_project = None
+                self.vertex_location = None
+                self.vertex_credentials = None
+        elif model_name.startswith("azure/"):
+            # Azure configuration
+            self.azure_api_base = kwargs.get("api_base")
+            self.azure_api_key = kwargs.get("api_key")
+            self.azure_api_version = kwargs.get("api_version")
+        
+        # Set litellm verbose mode if specified
+        import litellm
+        litellm.set_verbose = kwargs.get("verbose", False)
+        
+    def configure_vertex(self, security_key_path: str, location: str = "us-east5"):
+        """Configure Vertex AI settings"""
+        with open(security_key_path, 'r') as file:
+            self.vertex_credentials = json.load(file)
+        
+        self.vertex_project = self.vertex_credentials.get("project_id")
+        self.vertex_location = location
+        
+        # Set environment variables for Vertex AI
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = security_key_path
+        os.environ["GOOGLE_CLOUD_PROJECT"] = self.vertex_project
+        os.environ["VERTEXAI_PROJECT"] = self.vertex_project
+        os.environ["VERTEXAI_LOCATION"] = location
+
+    def configure_azure(self, api_base: str, api_key: str, api_version: str):
+        """Configure Azure OpenAI settings"""
+        self.azure_api_base = api_base
+        self.azure_api_key = api_key
+        self.azure_api_version = api_version
 
     def call_llm(self, 
                 prompt: str, 
@@ -192,12 +248,7 @@ Wrap the *SEARCH/REPLACE* edit in blocks ```python...```.
                 **kwargs) -> str:
         """
         Call the LLM with a given prompt and return the response.
-        
-        Args:
-            prompt (str): The prompt to send to the LLM
-            temperature (float, optional): Sampling temperature
-            max_tokens (int, optional): Maximum tokens in response
-            **kwargs: Additional arguments to pass to the LLM
+        Supports Bedrock, Vertex AI and Azure models.
         """
         try:
             logger.llm_request(
@@ -207,15 +258,33 @@ Wrap the *SEARCH/REPLACE* edit in blocks ```python...```.
                 **kwargs
             )
             
-            response = completion(
-                model="bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature or self.default_temperature,
-                max_tokens=max_tokens or self.max_tokens,
-                aws_region_name="us-west-2",
-                **kwargs
-            )
+            messages = [{"role": "user", "content": prompt}]
             
+            completion_params = {
+                "model": self.model_name,
+                "messages": messages,
+                "temperature": temperature or self.default_temperature,
+                "max_tokens": max_tokens or self.max_tokens,
+                **kwargs
+            }
+            
+            # Add provider-specific parameters
+            if self.model_name.startswith("vertex_ai/") and hasattr(self, 'vertex_credentials') and self.vertex_credentials:
+                completion_params.update({
+                    "vertex_credentials": json.dumps(self.vertex_credentials),
+                    "vertex_project": self.vertex_project,
+                    "vertex_location": self.vertex_location
+                })
+            elif self.model_name.startswith("bedrock/"):
+                completion_params["aws_region_name"] = self.aws_region
+            elif self.model_name.startswith("azure/"):
+                completion_params.update({
+                    "api_base": self.azure_api_base,
+                    "api_key": self.azure_api_key,
+                    "api_version": self.azure_api_version
+                })
+            
+            response = completion(**completion_params)
             result = response.choices[0].message.content
             logger.llm_response(result)
             

@@ -12,6 +12,9 @@ from llm import LLMInterface
 
 from logger import logger
 
+import dotenv
+dotenv.load_dotenv()
+
 
 def setup_directories(base_dir: str) -> Dict[str, str]:
     """Create necessary directories for outputs."""
@@ -63,7 +66,34 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str = None) 
     max_samples = 1
     
     # Create single LLM instance
-    llm = LLMInterface()
+    # For Bedrock (commented out)
+    # llm = LLMInterface(
+    #     model_name="bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
+    #     temperature=0.1,
+    #     max_tokens=4096,
+    #     aws_region="us-west-2"
+    # )
+
+    # For Azure
+    # llm = LLMInterface(
+    #     model_name=f"azure/{os.getenv('AZURE_DEPLOYMENT_NAME')}",
+    #     temperature=0.1,
+    #     max_tokens=4096,
+    #     api_base=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    #     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    #     api_version=os.getenv("AZURE_OPENAI_API_VERSION")
+    # )
+
+    # Active Vertex AI initialization
+    llm = LLMInterface(
+        model_name="vertex_ai/claude-3-7-sonnet@20250219",
+        temperature=0.1,
+        max_tokens=4096,
+        security_key_path="security-key.json",
+        vertex_location="us-east5"
+    )
+
+
     
     # Create output directories
     dirs = setup_directories(output_dir)
