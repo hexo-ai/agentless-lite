@@ -185,24 +185,67 @@ def find_patch(bug_description: str, project_dir: str, instance_id: str = None) 
     
     return consolidated_diff
 
+def get_parser():
+    """Create and return the argument parser."""
+    import argparse
+    parser = argparse.ArgumentParser(description="Bug fixing tool")
+    return parser
 
-if __name__ == "__main__":
-    instance_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    patch = find_patch(
-        'There is a bug in the get_cart_total endpoint where it randomly skips items during total calculation.',
-        'test-app'
+def main():
+    """
+    Command line entry point. Parses arguments and runs find_patch.
+    """
+    logger.info("Starting main")
+    parser = get_parser()
+    parser.add_argument(
+        '--bug_description',
+        type=str,
+        required=False,
+        help='Description of the bug to fix',
+        default='There is a bug in the get_cart_total endpoint where it randomly skips items during total calculation.',
     )
+    parser.add_argument(
+        '--project_dir',
+        type=str,
+        required=False,
+        help='Directory containing the project to fix',
+        default='test-app',
+    )
+    parser.add_argument(
+        '--instance_id',
+        type=str,
+        required=False,
+        help='Instance ID for this bug fix attempt, if not provided, a new instance ID will be generated',
+        default=None
+    )
+    args, _ = parser.parse_known_args()
 
-    # Print the results
-    print('\n' + '=' * 50)
-    if patch:
-        print('🎉 Bug Fix Generated Successfully!')
+    logger.info("Setting up LLM config")
+    # Use custom LLM config instead of loading from file
+
+    try:
+        instance_id = args.instance_id if args.instance_id else datetime.now().strftime("%Y%m%d_%H%M%S")
+        patch = find_patch(args.bug_description, args.project_dir, instance_id)
+
+        # Print the results
+        print('\n' + '=' * 50)
+        if patch:
+            print('🎉 Bug Fix Generated Successfully!')
+            print('=' * 50)
+            print(patch)
+            print('=' * 50)
+            print(f'Results saved in: results/{instance_id}/')
+        else:
+            print('❌ Bug Fix Generation Failed')
+            print('=' * 50)
+            print("No patch was generated or an error occurred")
         print('=' * 50)
-        print(patch)
-        print('=' * 50)
-        print(f'Results saved in: results/{instance_id}/')
-    else:
+    except Exception as e:
+        logger.error(f"Error during patch generation: {e}")
         print('❌ Bug Fix Generation Failed')
         print('=' * 50)
-        print("No patch was generated or an error occurred")
-    print('=' * 50)
+        print(f"Error: {e}")
+        print('=' * 50)
+
+if __name__ == "__main__":
+    main()

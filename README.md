@@ -125,7 +125,7 @@ To switch between providers, uncomment the desired configuration in the `find_pa
 The basic usage pattern is demonstrated:
 
 ```
-from main import find_patch
+from run import find_patch
 
 def main():
     # Test app arguments
@@ -150,6 +150,28 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+### Running with Command-Line Arguments
+
+You can run the tool directly using `run.py` with command-line arguments:
+
+```bash
+python run.py --bug_description "Description of the bug to fix" --project_dir "path/to/project" --instance_id "instance_id"
+```
+
+For example:
+
+```bash
+python run.py --bug_description "There is a bug in the login function where it doesn't validate the email format" --project_dir "my-web-app" --instance_id "my-web-app-try1"
+```
+
+The command-line arguments are:
+
+- `--bug_description`: Description of the bug to fix (default: "There is a bug in the get_cart_total endpoint where it randomly skips items during total calculation.")
+- `--project_dir`: Directory containing the project to fix (default: "test-app")
+- `--instance_id`: Instance ID for this bug fix attempt, if not provided, a new instance ID will be generated
+
+If you don't provide these arguments, the script will use the default values.
 
 ### Key Components
 
